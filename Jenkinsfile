@@ -88,7 +88,11 @@ pipeline {
                     )
                 }
             }
-            //post { always { deleteDir() } }
+            post {
+                always {
+                    warnings consoleParsers: [[parserName: 'CppLint']], canRunOnFailed: true
+                    deleteDir() 
+            }}
         }
         //stage('Tests') {
         //    failFast true
