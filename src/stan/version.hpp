@@ -24,7 +24,7 @@ namespace stan {
   const std::string MINOR_VERSION = STAN_STRING(STAN_MINOR);
 
   /** Patch version for Stan package. */
-  const std::string PATCH_VERSION = STAN_STRING(STAN_PATCH);
+  const      std::string PATCH_VERSION = STAN_STRING(STAN_PATCH);  
 
 }
 
