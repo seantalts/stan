@@ -88,7 +88,7 @@ pipeline {
                     )
                 }
             }
-            post { always { deleteDir() } }
+            //post { always { deleteDir() } }
         }
         //stage('Tests') {
         //    failFast true
@@ -170,8 +170,6 @@ pipeline {
     post {
         always {
             node('master') {
-                checkout scm
-                sh 'make math-revert'
                 warnings consoleParsers: [[parserName: 'CppLint']], canRunOnFailed: true
                 warnings consoleParsers: [[parserName: 'GNU C Compiler 4 (gcc)']], canRunOnFailed: true
                 warnings consoleParsers: [[parserName: 'Clang (LLVM based)']], canRunOnFailed: true
