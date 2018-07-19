@@ -2,7 +2,7 @@ version: 2.0
 jobs:
   docs:
     docker:
-      - image: drmike/r-bookdown
+      - image: seantalts/bookdown
     steps:
       - checkout
       - run: make doc
