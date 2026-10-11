@@ -1,29 +1,29 @@
 #include <gtest/gtest.h>
 #include <stan/optimization/bfgs.hpp>
+#include <stan/io/empty_var_context.hpp>
 #include <test/test-models/good/optimization/rosenbrock.hpp>
 #include <sstream>
 
 typedef rosenbrock_model_namespace::rosenbrock_model Model;
-typedef stan::optimization::BFGSMinimizer<stan::optimization::ModelAdaptor<Model>,
-                                          stan::optimization::BFGSUpdate_HInv<> > Optimizer;
+typedef stan::optimization::BFGSMinimizer<
+    stan::optimization::ModelAdaptor<Model>,
+    stan::optimization::BFGSUpdate_HInv<> >
+    Optimizer;
 
 class OptimizationBfgsMinimizer : public testing::Test {
-public:
-  Eigen::Matrix<double,Eigen::Dynamic,1> cont_vector;
+ public:
+  Eigen::Matrix<double, Eigen::Dynamic, 1> cont_vector;
   std::vector<int> disc_vector;
 
   void SetUp() {
     cont_vector.resize(2);
-    cont_vector[0] = -1; cont_vector[1] = 1;
-
+    cont_vector[0] = -1;
+    cont_vector[1] = 1;
   }
 };
 
-
 TEST_F(OptimizationBfgsMinimizer, constructor) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -32,9 +32,7 @@ TEST_F(OptimizationBfgsMinimizer, constructor) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, ls_opts) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -48,9 +46,7 @@ TEST_F(OptimizationBfgsMinimizer, ls_opts) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, conv_opts) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -67,9 +63,7 @@ TEST_F(OptimizationBfgsMinimizer, conv_opts) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, get_qnupdate) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -81,9 +75,7 @@ TEST_F(OptimizationBfgsMinimizer, get_qnupdate) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, curr_f) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -95,9 +87,7 @@ TEST_F(OptimizationBfgsMinimizer, curr_f) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, curr_x) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -110,9 +100,7 @@ TEST_F(OptimizationBfgsMinimizer, curr_x) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, curr_g) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -125,9 +113,7 @@ TEST_F(OptimizationBfgsMinimizer, curr_g) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, curr_p) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -140,9 +126,7 @@ TEST_F(OptimizationBfgsMinimizer, curr_p) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, prev_f) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -155,9 +139,7 @@ TEST_F(OptimizationBfgsMinimizer, prev_f) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, prev_x) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -171,9 +153,7 @@ TEST_F(OptimizationBfgsMinimizer, prev_x) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, prev_g) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -187,9 +167,7 @@ TEST_F(OptimizationBfgsMinimizer, prev_g) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, prev_p) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -203,9 +181,7 @@ TEST_F(OptimizationBfgsMinimizer, prev_p) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, prev_step_size) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -218,9 +194,7 @@ TEST_F(OptimizationBfgsMinimizer, prev_step_size) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, rel_grad_norm) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -233,9 +207,7 @@ TEST_F(OptimizationBfgsMinimizer, rel_grad_norm) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, rel_obj_decrease) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -248,9 +220,7 @@ TEST_F(OptimizationBfgsMinimizer, rel_obj_decrease) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, alpha0) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -263,9 +233,7 @@ TEST_F(OptimizationBfgsMinimizer, alpha0) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, alpha) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -278,9 +246,7 @@ TEST_F(OptimizationBfgsMinimizer, alpha) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, iter_num) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -294,9 +260,7 @@ TEST_F(OptimizationBfgsMinimizer, iter_num) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, note) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -309,9 +273,7 @@ TEST_F(OptimizationBfgsMinimizer, note) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, get_code_string) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -320,12 +282,19 @@ TEST_F(OptimizationBfgsMinimizer, get_code_string) {
   bfgs.initialize(cont_vector);
 
   EXPECT_TRUE(bfgs.get_code_string(0) == "Successful step completed");
-  EXPECT_TRUE(bfgs.get_code_string(10) == "Convergence detected: absolute parameter change was below tolerance");
+  EXPECT_TRUE(
+      bfgs.get_code_string(10)
+      == "Convergence detected: absolute parameter change was below tolerance");
   EXPECT_TRUE(bfgs.get_code_string(20) == "Convergence detected: absolute change in objective function was below tolerance");
   EXPECT_TRUE(bfgs.get_code_string(21) == "Convergence detected: relative change in objective function was below tolerance");
-  EXPECT_TRUE(bfgs.get_code_string(30) == "Convergence detected: gradient norm is below tolerance");
-  EXPECT_TRUE(bfgs.get_code_string(31) == "Convergence detected: relative gradient magnitude is below tolerance");
-  EXPECT_TRUE(bfgs.get_code_string(40) == "Maximum number of iterations hit, may not be at an optima");
+  EXPECT_TRUE(bfgs.get_code_string(30)
+              == "Convergence detected: gradient norm is below tolerance");
+  EXPECT_TRUE(
+      bfgs.get_code_string(31)
+      == "Convergence detected: relative gradient magnitude is below "
+         "tolerance");
+  EXPECT_TRUE(bfgs.get_code_string(40)
+              == "Maximum number of iterations hit, may not be at an optima");
   EXPECT_TRUE(bfgs.get_code_string(-1) == "Line search failed to achieve a sufficient decrease, no more progress can be made");
   EXPECT_TRUE(bfgs.get_code_string(42) == "Unknown termination code");
   EXPECT_TRUE(bfgs.get_code_string(32) == "Unknown termination code");
@@ -334,9 +303,7 @@ TEST_F(OptimizationBfgsMinimizer, get_code_string) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, initialize) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -346,7 +313,7 @@ TEST_F(OptimizationBfgsMinimizer, initialize) {
   EXPECT_FLOAT_EQ(bfgs.curr_x().size(), 0);
   EXPECT_FLOAT_EQ(bfgs.curr_p().size(), 0);
   EXPECT_FLOAT_EQ(bfgs.curr_g().size(), 0);
-  
+
   bfgs.initialize(cont_vector);
   EXPECT_FLOAT_EQ(bfgs.curr_x().size(), 2);
   EXPECT_FLOAT_EQ(bfgs.curr_x()[0], -1);
@@ -362,9 +329,7 @@ TEST_F(OptimizationBfgsMinimizer, initialize) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, step) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);
@@ -375,9 +340,7 @@ TEST_F(OptimizationBfgsMinimizer, step) {
 }
 
 TEST_F(OptimizationBfgsMinimizer, minimize) {
-  static const std::string DATA("");
-  std::stringstream data_stream(DATA);
-  stan::io::dump dummy_context(data_stream);
+  stan::io::empty_var_context dummy_context;
   Model rb_model(dummy_context);
   std::stringstream out;
   stan::optimization::ModelAdaptor<Model> _adaptor(rb_model, disc_vector, &out);

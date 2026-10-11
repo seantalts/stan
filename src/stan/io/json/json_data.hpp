@@ -1,211 +1,286 @@
 #ifndef STAN_IO_JSON_JSON_DATA_HPP
 #define STAN_IO_JSON_JSON_DATA_HPP
 
-#include <boost/throw_exception.hpp>
-#include <boost/lexical_cast.hpp>
-#include <stan/io/var_context.hpp>
-#include <stan/io/json/json_error.hpp>
-#include <stan/io/json/json_parser.hpp>
 #include <stan/io/json/json_data_handler.hpp>
-#include <cctype>
+#include <stan/io/json/json_error.hpp>
+#include <stan/io/json/rapidjson_parser.hpp>
+#include <stan/io/var_context.hpp>
+#include <stan/io/validate_dims.hpp>
 #include <iostream>
 #include <limits>
-#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
+#include <complex>
 
 namespace stan {
 
-  namespace json {
+namespace json {
 
-    /**
-     * A <code>json_data</code> is a <code>var_context</code> object
-     * that represents a set of named values which are typed to either
-     * <code>double</code> or <code>int</code> and can be either scalar
-     * value or a non-empty array of values of any dimensionality.
-     * Arrays must be retangular and the values of an array are all of
-     * the same type, either double or int.
-     *
-     * <p>The dimensions and values of variables are accessed by variable name.
-     * The values of a variable are stored as a vector of values and
-     * a vector of array dimensions, where a scalar value consists of
-     * a single value and an emtpy vector for the dimensionality.
-     * Multidimensional arrays are stored in column-major order,
-     * meaning the first index changes the most quickly.
-     * If all the values of an array are int values, the array will be
-     * stored as a vector of ints, else the array will be stored
-     * as a vector of type double.
-     *
-     * <p><code>json_data</code> objects are created by using the
-     * <code>json_parser</code> and a <code>json_data_handler</code>
-     * to read a single JSON text from an input stream.
-     */
-    class json_data : public stan::io::var_context {
-    private:
-      vars_map_r vars_r_;
-      vars_map_i vars_i_;
+/**
+ * A <code>json_data</code> is a <code>var_context</code> object
+ * that represents a set of named values which are typed to either
+ * <code>double</code> or <code>int</code> and can be either scalar
+ * value or an array of values of any dimensionality.
+ * Arrays must be rectangular and the values of an array are all of
+ * the same type, either double or int.
+ *
+ * <p>The dimensions and values of variables are accessed by variable name.
+ * The values of a variable are stored as a vector of values and
+ * a vector of array dimensions, where a scalar value consists of
+ * a single value and an empty vector for the dimensionality.
+ * Multidimensional arrays are stored in column-major order,
+ * meaning the first index changes the most quickly.
+ * If all the values of an array are int values, the array will be
+ * stored as a vector of ints, else the array will be stored
+ * as a vector of type double.
+ *
+ * <p>A variable inside an array of tuples is named by the dotted path to its
+ * tuple slot.  Given
+ *
+ * ```
+ * "x": [{"1": [1.0, 2.0, 3.0], "2": 4}, {"1": [5.0, 6.0, 7.0], "2": 8}]
+ * ```
+ *
+ * slot `x.1` has dims `{2, 3}` and values `{1, 2, 3, 5, 6, 7}`.  The leading 2
+ * is the enclosing array, with one block per tuple element in element order;
+ * the 3 values of each block are column-major as above.
+ * `var_entry::num_outer_arrays` records how many leading dimensions are
+ * enclosing arrays, which `dims` alone cannot say.
+ *
+ * <p><code>json_data</code> objects are created by using the
+ * <code>json_parser</code> and a <code>json_data_handler</code>
+ * to read a single JSON text from an input stream.
+ */
+class json_data : public stan::io::var_context {
+ private:
+  vars_map_r vars_r_;
+  vars_map_i vars_i_;
 
-      std::vector<double> const empty_vec_r_;
-      std::vector<int> const empty_vec_i_;
-      std::vector<size_t> const empty_vec_ui_;
+  std::vector<double> const empty_vec_r_;
+  std::vector<int> const empty_vec_i_;
+  std::vector<size_t> const empty_vec_ui_;
 
-      /**
-       * Return <code>true</code> if this json_data contains the specified
-       * variable name defined as a real-valued variable. This method
-       * returns <code>false</code> if the values are all integers.
-       *
-       * @param name Variable name to test.
-       * @return <code>true</code> if the variable exists in the
-       * real values of the json_data.
-       */
-      bool contains_r_only(const std::string& name) const {
-        return vars_r_.find(name) != vars_r_.end();
-      }
-
-    public:
-      /**
-       * Construct a json_data object from the specified input stream.
-       *
-       * <b>Warning:</b> This method does not close the input stream.
-       *
-       * @param in Input stream from which to read.
-       * @throws json_exception if data is not well-formed stan data declaration
-       */
-      explicit json_data(std::istream& in) : vars_r_(), vars_i_() {
-        json_data_handler handler(vars_r_, vars_i_);
-        stan::json::parse(in, handler);
-      }
-
-      /**
-       * Return <code>true</code> if this json_data contains the specified
-       * variable name. This method returns <code>true</code>
-       * even if the values are all integers.
-       *
-       * @param name Variable name to test.
-       * @return <code>true</code> if the variable exists.
-       */
-      bool contains_r(const std::string& name) const {
-        return contains_r_only(name) || contains_i(name);
-      }
-
-      /**
-       * Return <code>true</code> if this json_data contains an integer
-       * valued array with the specified name.
-       *
-       * @param name Variable name to test.
-       * @return <code>true</code> if the variable name has an integer
-       * array value.
-       */
-      bool contains_i(const std::string& name) const {
-        return vars_i_.find(name) != vars_i_.end();
-      }
-
-      /**
-       * Return the double values for the variable with the specified
-       * name or null.
-       *
-       * @param name Name of variable.
-       * @return Values of variable.
-       */
-      std::vector<double> vals_r(const std::string& name) const {
-        if (contains_r_only(name)) {
-          return (vars_r_.find(name)->second).first;
-        } else if (contains_i(name)) {
-          std::vector<int> vec_int = (vars_i_.find(name)->second).first;
-          std::vector<double> vec_r(vec_int.size());
-          for (size_t ii = 0; ii < vec_int.size(); ii++) {
-            vec_r[ii] = vec_int[ii];
-          }
-          return vec_r;
-        }
-        return empty_vec_r_;
-      }
-
-      /**
-       * Return the dimensions for the variable with the specified
-       * name.
-       *
-       * @param name Name of variable.
-       * @return Dimensions of variable.
-       */
-      std::vector<size_t> dims_r(const std::string& name) const {
-        if (contains_r_only(name)) {
-          return (vars_r_.find(name)->second).second;
-        } else if (contains_i(name)) {
-          return (vars_i_.find(name)->second).second;
-        }
-        return empty_vec_ui_;
-      }
-
-      /**
-       * Return the integer values for the variable with the specified
-       * name.
-       *
-       * @param name Name of variable.
-       * @return Values.
-       */
-      std::vector<int> vals_i(const std::string& name) const {
-        if (contains_i(name)) {
-          return (vars_i_.find(name)->second).first;
-        }
-        return empty_vec_i_;
-      }
-
-      /**
-       * Return the dimensions for the integer variable with the specified
-       * name.
-       *
-       * @param name Name of variable.
-       * @return Dimensions of variable.
-       */
-      std::vector<size_t> dims_i(const std::string& name) const {
-        if (contains_i(name)) {
-          return (vars_i_.find(name)->second).second;
-        }
-        return empty_vec_ui_;
-      }
-
-      /**
-       * Return a list of the names of the floating point variables in
-       * the json_data.
-       *
-       * @param names Vector to store the list of names in.
-       */
-      virtual void names_r(std::vector<std::string>& names) const {
-        names.resize(0);
-        for (vars_map_r::const_iterator it = vars_r_.begin();
-             it != vars_r_.end(); ++it)
-          names.push_back((*it).first);
-      }
-
-      /**
-       * Return a list of the names of the integer variables in
-       * the json_data.
-       *
-       * @param names Vector to store the list of names in.
-       */
-      virtual void names_i(std::vector<std::string>& names) const {
-        names.resize(0);
-        for (vars_map_i::const_iterator it = vars_i_.begin();
-             it != vars_i_.end(); ++it)
-          names.push_back((*it).first);
-      }
-
-      /**
-       * Remove variable from the object.
-       *
-       * @param name Name of the variable to remove.
-       * @return If variable is removed returns <code>true</code>, else
-       *   returns <code>false</code>.
-       */
-      bool remove(const std::string& name) {
-        return (vars_i_.erase(name) > 0)
-          || (vars_r_.erase(name) > 0);
-      }
-    };
-
+  /**
+   * Return <code>true</code> if this json_data contains the specified
+   * variable name defined as a real-valued variable. This method
+   * returns <code>false</code> if the values are all integers.
+   *
+   * @param name Variable name to test.
+   * @return <code>true</code> if the variable exists in the
+   * real values of the json_data.
+   */
+  bool contains_r_only(const std::string &name) const {
+    return vars_r_.find(name) != vars_r_.end();
   }
 
-}
+  /**
+   * Pair the real and imaginary components of a complex variable.
+   *
+   * The values are one block per enclosing tuple element, or a single block
+   * when no array of tuples encloses the variable.  A block holds all the real
+   * components first, then all the imaginary ones, so a block of 6 values
+   * `{r0, r1, r2, i0, i1, i2}` decodes to `{(r0, i0), (r1, i1), (r2, i2)}`.
+   *
+   * @tparam T Stored scalar type, either `int` or `double`.
+   * @param name Variable name.
+   * @param entry Stored values and dimensions for the variable.
+   * @return Complex values in the order of the input blocks.
+   * @throw json_error if nonempty data has no trailing component dimension 2.
+   */
+  template <typename T>
+  std::vector<std::complex<double>> vals_c_impl(
+      const std::string &name, const var_entry<T> &entry) const {
+    const auto &values = entry.values;
+    if (values.empty())
+      return {};
+    // The trailing 2 must be the variable's own, not an enclosing array dim.
+    if (!entry.is_array() || entry.dims.back() != 2) {
+      throw json_error("Variable: " + name
+                       + ", expected a trailing dimension of 2 for complex "
+                         "values.");
+    }
+    const size_t block_size = entry.block_size();
+    const size_t half_block = block_size / 2;
+    std::vector<std::complex<double>> result;
+    result.reserve(values.size() / 2);
+    for (size_t start = 0; start < values.size(); start += block_size) {
+      for (size_t i = 0; i < half_block; ++i) {
+        result.emplace_back(values[start + i], values[start + half_block + i]);
+      }
+    }
+    return result;
+  }
+
+ public:
+  /**
+   * Construct a json_data object from the specified input stream.
+   *
+   * <b>Warning:</b> This method does not close the input stream.
+   *
+   * @param in Input stream from which to read.
+   * @throws json_exception if data is not well-formed stan data declaration
+   */
+  explicit json_data(std::istream &in) : vars_r_(), vars_i_() {
+    json_data_handler handler(vars_r_, vars_i_);
+    rapidjson_parse(in, handler);
+  }
+
+  /**
+   * Return <code>true</code> if this json_data contains the specified
+   * variable name. This method returns <code>true</code>
+   * even if the values are all integers.
+   *
+   * @param name Variable name to test.
+   * @return <code>true</code> if the variable exists.
+   */
+  bool contains_r(const std::string &name) const {
+    return contains_r_only(name) || contains_i(name);
+  }
+
+  /**
+   * Return <code>true</code> if this json_data contains an integer
+   * valued array with the specified name.
+   *
+   * @param name Variable name to test.
+   * @return <code>true</code> if the variable name has an integer
+   * array value.
+   */
+  bool contains_i(const std::string &name) const {
+    return vars_i_.find(name) != vars_i_.end();
+  }
+
+  /**
+   * Return the double values for the variable with the specified
+   * name or null.
+   *
+   * @param name Name of variable.
+   * @return Values of variable.
+   */
+  std::vector<double> vals_r(const std::string &name) const {
+    if (contains_r_only(name)) {
+      return vars_r_.find(name)->second.values;
+    } else if (contains_i(name)) {
+      const std::vector<int> &vec_int = vars_i_.find(name)->second.values;
+      return std::vector<double>(vec_int.begin(), vec_int.end());
+    }
+    return empty_vec_r_;
+  }
+
+  /**
+   * Read out the complex values for the variable with the specified
+   * name and return a flat vector of complex values.
+   *
+   * @param name Name of Variable of type string.
+   * @return Vector of complex numbers with values equal to the read input.
+   * @throw json_error if nonempty data has no trailing component dimension 2.
+   */
+  std::vector<std::complex<double>> vals_c(const std::string &name) const {
+    if (contains_r_only(name)) {
+      return vals_c_impl(name, vars_r_.find(name)->second);
+    } else if (contains_i(name)) {
+      return vals_c_impl(name, vars_i_.find(name)->second);
+    }
+    return std::vector<std::complex<double>>{};
+  }
+
+  /**
+   * Return the dimensions for the variable with the specified
+   * name.
+   *
+   * @param name Name of variable.
+   * @return Dimensions of variable.
+   */
+  std::vector<size_t> dims_r(const std::string &name) const {
+    if (contains_r_only(name)) {
+      return vars_r_.find(name)->second.dims;
+    } else if (contains_i(name)) {
+      return vars_i_.find(name)->second.dims;
+    }
+    return empty_vec_ui_;
+  }
+
+  /**
+   * Return the integer values for the variable with the specified
+   * name.
+   *
+   * @param name Name of variable.
+   * @return Values.
+   */
+  std::vector<int> vals_i(const std::string &name) const {
+    if (contains_i(name)) {
+      return vars_i_.find(name)->second.values;
+    }
+    return empty_vec_i_;
+  }
+
+  /**
+   * Return the dimensions for the integer variable with the specified
+   * name.
+   *
+   * @param name Name of variable.
+   * @return Dimensions of variable.
+   */
+  std::vector<size_t> dims_i(const std::string &name) const {
+    if (contains_i(name)) {
+      return vars_i_.find(name)->second.dims;
+    }
+    return empty_vec_ui_;
+  }
+
+  /**
+   * Return a list of the names of the floating point variables in
+   * the json_data.
+   *
+   * @param names Vector to store the list of names in.
+   */
+  virtual void names_r(std::vector<std::string> &names) const {
+    names.resize(0);
+    for (vars_map_r::const_iterator it = vars_r_.begin(); it != vars_r_.end();
+         ++it)
+      names.push_back((*it).first);
+  }
+
+  /**
+   * Return a list of the names of the integer variables in
+   * the json_data.
+   *
+   * @param names Vector to store the list of names in.
+   */
+  virtual void names_i(std::vector<std::string> &names) const {
+    names.resize(0);
+    for (vars_map_i::const_iterator it = vars_i_.begin(); it != vars_i_.end();
+         ++it)
+      names.push_back((*it).first);
+  }
+
+  /**
+   * Remove variable from the object.
+   *
+   * @param name Name of the variable to remove.
+   * @return If variable is removed returns <code>true</code>, else
+   *   returns <code>false</code>.
+   */
+  bool remove(const std::string &name) {
+    return (vars_i_.erase(name) > 0) || (vars_r_.erase(name) > 0);
+  }
+
+  void validate_dims(const std::string &stage, const std::string &name,
+                     const std::string &base_type,
+                     const std::vector<size_t> &dims_declared) const {
+    std::vector<size_t> dims = dims_r(name);
+
+    // JSON '[ ]' is ambiguous - any multi-dim variable with len 0 dim
+    // treat non-existent variables as size-0 objects
+    size_t num_values = dims.empty() ? 0 : size_from_dims(dims);
+    if (num_values == 0 && size_from_dims(dims_declared) == 0)
+      return;
+
+    stan::io::validate_dims(*this, stage, name, base_type, dims_declared);
+  }
+};
+
+}  // namespace json
+
+}  // namespace stan
 #endif

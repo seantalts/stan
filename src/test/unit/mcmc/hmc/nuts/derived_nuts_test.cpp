@@ -5,19 +5,14 @@
 #include <stan/mcmc/hmc/hamiltonians/unit_e_point.hpp>
 #include <stan/mcmc/hmc/hamiltonians/diag_e_point.hpp>
 #include <stan/mcmc/hmc/hamiltonians/dense_e_point.hpp>
+#include <stan/services/util/create_rng.hpp>
 
 #include <test/unit/mcmc/hmc/mock_hmc.hpp>
 
-#include <boost/random/additive_combine.hpp>
-
 #include <gtest/gtest.h>
 
-
-typedef boost::ecuyer1988 rng_t;
-
 TEST(McmcNutsDerivedNuts, compute_criterion_unit_e) {
-
-  rng_t base_rng(0);
+  stan::rng_t base_rng = stan::services::util::create_rng(0, 0);
 
   int model_size = 1;
 
@@ -28,7 +23,8 @@ TEST(McmcNutsDerivedNuts, compute_criterion_unit_e) {
   Eigen::VectorXd rho(model_size);
 
   stan::mcmc::mock_model model(model_size);
-  stan::mcmc::unit_e_nuts<stan::mcmc::mock_model, rng_t> sampler(model, base_rng);
+  stan::mcmc::unit_e_nuts<stan::mcmc::mock_model, stan::rng_t> sampler(
+      model, base_rng);
 
   start.q(0) = 1;
   start.p(0) = 1;
@@ -56,8 +52,7 @@ TEST(McmcNutsDerivedNuts, compute_criterion_unit_e) {
 }
 
 TEST(McmcNutsDerivedNuts, compute_criterion_diag_e) {
-
-  rng_t base_rng(0);
+  stan::rng_t base_rng = stan::services::util::create_rng(0, 0);
 
   int model_size = 1;
 
@@ -68,7 +63,8 @@ TEST(McmcNutsDerivedNuts, compute_criterion_diag_e) {
   Eigen::VectorXd rho(model_size);
 
   stan::mcmc::mock_model model(model_size);
-  stan::mcmc::diag_e_nuts<stan::mcmc::mock_model, rng_t> sampler(model, base_rng);
+  stan::mcmc::diag_e_nuts<stan::mcmc::mock_model, stan::rng_t> sampler(
+      model, base_rng);
 
   start.q(0) = 1;
   start.p(0) = 1;
@@ -96,8 +92,7 @@ TEST(McmcNutsDerivedNuts, compute_criterion_diag_e) {
 }
 
 TEST(McmcNutsDerivedNuts, compute_criterion_dense_e) {
-
-  rng_t base_rng(0);
+  stan::rng_t base_rng = stan::services::util::create_rng(0, 0);
 
   int model_size = 1;
 
@@ -108,7 +103,8 @@ TEST(McmcNutsDerivedNuts, compute_criterion_dense_e) {
   Eigen::VectorXd rho(model_size);
 
   stan::mcmc::mock_model model(model_size);
-  stan::mcmc::dense_e_nuts<stan::mcmc::mock_model, rng_t> sampler(model, base_rng);
+  stan::mcmc::dense_e_nuts<stan::mcmc::mock_model, stan::rng_t> sampler(
+      model, base_rng);
 
   start.q(0) = 1;
   start.p(0) = 1;
@@ -136,8 +132,7 @@ TEST(McmcNutsDerivedNuts, compute_criterion_dense_e) {
 }
 
 TEST(McmcNutsDerivedNuts, compute_criterion_softabs) {
-
-  rng_t base_rng(0);
+  stan::rng_t base_rng = stan::services::util::create_rng(0, 0);
 
   int model_size = 1;
 
@@ -148,8 +143,8 @@ TEST(McmcNutsDerivedNuts, compute_criterion_softabs) {
   Eigen::VectorXd rho(model_size);
 
   stan::mcmc::mock_model model(model_size);
-  stan::mcmc::softabs_nuts<stan::mcmc::mock_model, rng_t>
-    sampler(model, base_rng);
+  stan::mcmc::softabs_nuts<stan::mcmc::mock_model, stan::rng_t> sampler(
+      model, base_rng);
 
   start.q(0) = 1;
   start.p(0) = 1;

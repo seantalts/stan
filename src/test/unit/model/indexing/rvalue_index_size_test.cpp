@@ -1,4 +1,4 @@
-#include <stan/model/indexing/rvalue_index_size.hpp>
+#include <stan/model/indexing.hpp>
 #include <gtest/gtest.h>
 #include <vector>
 
@@ -12,7 +12,7 @@ TEST(modelIndexingRvalueIndexSize, multi) {
   std::vector<int> ns;
   ns.push_back(1);
   ns.push_back(2);
-  
+
   index_multi idx(ns);
   EXPECT_EQ(2, rvalue_index_size(idx, 10));
 }
@@ -31,6 +31,9 @@ TEST(modelIndexingRvalueIndexSize, min) {
 
   index_min idx(3);
   EXPECT_EQ(8, rvalue_index_size(idx, 10));
+  EXPECT_EQ(0, rvalue_index_size(index_min(11), 10));
+  EXPECT_EQ(0, rvalue_index_size(index_min(20), 10));
+  EXPECT_EQ(0, rvalue_index_size(index_min(1), 0));
 }
 
 TEST(modelIndexingRvalueIndexSize, max) {
@@ -39,6 +42,9 @@ TEST(modelIndexingRvalueIndexSize, max) {
 
   index_max idx(5);
   EXPECT_EQ(5, rvalue_index_size(idx, 10));
+  EXPECT_EQ(0, rvalue_index_size(index_max(0), 10));
+  EXPECT_EQ(0, rvalue_index_size(index_max(-5), 10));
+  EXPECT_EQ(0, rvalue_index_size(index_max(0), 0));
 }
 
 TEST(modelIndexingRvalueIndexSize, minMax) {
@@ -54,5 +60,5 @@ TEST(modelIndexingRvalueIndexSize, minMax) {
   EXPECT_EQ(0, rvalue_index_size(mm3, 10));
 
   index_min_max mm4(1, 0);
-  EXPECT_EQ(0, rvalue_index_size(mm3, 10));
+  EXPECT_EQ(0, rvalue_index_size(mm4, 10));
 }

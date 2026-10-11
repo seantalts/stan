@@ -1,7 +1,7 @@
 #include <stan/io/random_var_context.hpp>
 #include <stan/io/empty_var_context.hpp>
+#include <stan/services/util/create_rng.hpp>
 #include <gtest/gtest.h>
-#include <boost/random/additive_combine.hpp>  // L'Ecuyer RNG
 #include <boost/random/uniform_real_distribution.hpp>
 #include <test/test-models/good/services/test_lp.hpp>
 #include <test/unit/util.hpp>
@@ -9,15 +9,14 @@
 namespace test {
 // mock_throwing_model_in_write_array throws exception in the write_array()
 // method
-class mock_throwing_model_in_write_array: public stan::model::prob_grad {
+class mock_throwing_model_in_write_array : public stan::model::prob_grad {
  public:
-
-  mock_throwing_model_in_write_array():
-      stan::model::prob_grad(1),
-      templated_log_prob_calls(0),
-      transform_inits_calls(0),
-      write_array_calls(0),
-      log_prob_return_value(0.0) { }
+  mock_throwing_model_in_write_array()
+      : stan::model::prob_grad(1),
+        templated_log_prob_calls(0),
+        transform_inits_calls(0),
+        write_array_calls(0),
+        log_prob_return_value(0.0) {}
 
   void reset() {
     templated_log_prob_calls = 0;
@@ -27,8 +26,7 @@ class mock_throwing_model_in_write_array: public stan::model::prob_grad {
   }
 
   template <bool propto__, bool jacobian__, typename T__>
-  T__ log_prob(std::vector<T__>& params_r__,
-               std::vector<int>& params_i__,
+  T__ log_prob(std::vector<T__>& params_r__, std::vector<int>& params_i__,
                std::ostream* pstream__ = 0) const {
     ++templated_log_prob_calls;
     return log_prob_return_value;
@@ -44,7 +42,8 @@ class mock_throwing_model_in_write_array: public stan::model::prob_grad {
     }
   }
 
-  void get_dims(std::vector<std::vector<size_t> >& dimss__) const {
+  void get_dims(std::vector<std::vector<size_t> >& dimss__,
+                bool include_tparams = true, bool include_gqs = true) const {
     dimss__.resize(0);
     std::vector<size_t> scalar_dim;
     dimss__.push_back(scalar_dim);
@@ -56,7 +55,9 @@ class mock_throwing_model_in_write_array: public stan::model::prob_grad {
     param_names__.push_back("theta");
   }
 
-  void get_param_names(std::vector<std::string>& names) const {
+  void get_param_names(std::vector<std::string>& names,
+                       bool include_tparams = true,
+                       bool include_gqs = true) const {
     constrained_param_names(names);
   }
 
@@ -71,12 +72,9 @@ class mock_throwing_model_in_write_array: public stan::model::prob_grad {
     }
   }
   template <typename RNG>
-  void write_array(RNG& base_rng__,
-                   std::vector<double>& params_r__,
-                   std::vector<int>& params_i__,
-                   std::vector<double>& vars__,
-                   bool include_tparams__ = true,
-                   bool include_gqs__ = true,
+  void write_array(RNG& base_rng__, std::vector<double>& params_r__,
+                   std::vector<int>& params_i__, std::vector<double>& vars__,
+                   bool include_tparams__ = true, bool include_gqs__ = true,
                    std::ostream* pstream__ = 0) const {
     ++write_array_calls;
     throw std::domain_error("throwing within write_array");
@@ -90,26 +88,27 @@ class mock_throwing_model_in_write_array: public stan::model::prob_grad {
   mutable int write_array_calls;
   double log_prob_return_value;
 };
-}
-
+}  // namespace test
 
 class random_var_context : public testing::Test {
  public:
   random_var_context()
       : empty_context(),
-        model(empty_context, static_cast<std::stringstream*>(0)),
-        rng(0),
-        throwing_model() { }
+        model(empty_context, 0, static_cast<std::stringstream*>(0)),
+        rng(stan::services::util::create_rng(0, 0)),
+        throwing_model() {}
 
   stan::io::empty_var_context empty_context;
   stan_model model;
-  boost::ecuyer1988 rng;
-  test::mock_throwing_model_in_write_array throwing_model;  
+  stan::rng_t rng;
+  test::mock_throwing_model_in_write_array throwing_model;
 };
 
 TEST_F(random_var_context, contains_r) {
   stan::io::random_var_context context(model, rng, 2, false);
   EXPECT_FALSE(context.contains_r(""));
+  EXPECT_FALSE(context.contains_r("z"));    // transformed parameter
+  EXPECT_FALSE(context.contains_r("xgq"));  // generated quantity
   EXPECT_TRUE(context.contains_r("y"));
 }
 
@@ -132,7 +131,6 @@ TEST_F(random_var_context, dims_r) {
   std::vector<size_t> dims_r;
   EXPECT_NO_THROW(dims_r = context.dims_r(""));
   EXPECT_EQ(0, dims_r.size());
-
 
   EXPECT_NO_THROW(dims_r = context.dims_r("y"));
   ASSERT_EQ(1, dims_r.size());
@@ -174,6 +172,5 @@ TEST_F(random_var_context, names_i) {
 
 TEST_F(random_var_context, construct) {
   EXPECT_THROW_MSG(stan::io::random_var_context(throwing_model, rng, 2, false),
-                   std::domain_error,
-                   "throwing within write_array");
+                   std::domain_error, "throwing within write_array");
 }

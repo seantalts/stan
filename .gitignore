@@ -58,3 +58,16 @@ stan.kdev4
 /make/local
 
 *.gch
+
+#clang-tidy fixes yaml
+.clang-fixes.log
+
+# Visual Studio Settings
+.vscode/*
+
+# clangd compiler database
+compile_commands.json
+compile_flags.txt
+
+# gdb
+.gdb_history

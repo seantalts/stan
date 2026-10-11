@@ -1,17 +1,16 @@
 #include <gtest/gtest.h>
-#include <boost/lexical_cast.hpp>
 #include <stan/callbacks/stream_writer.hpp>
 
-class StanInterfaceCallbacksStreamWriter: public ::testing::Test {
-public:
-  StanInterfaceCallbacksStreamWriter() :
-    ss(), writer(ss), writer_prefix(ss, "# ") {}
+class StanInterfaceCallbacksStreamWriter : public ::testing::Test {
+ public:
+  StanInterfaceCallbacksStreamWriter()
+      : ss(), writer(ss), writer_prefix(ss, "# ") {}
 
   void SetUp() {
     ss.str(std::string());
     ss.clear();
   }
-  void TearDown() { }
+  void TearDown() {}
 
   std::stringstream ss;
   stan::callbacks::stream_writer writer;
@@ -21,7 +20,8 @@ public:
 TEST_F(StanInterfaceCallbacksStreamWriter, double_vector) {
   const int N = 5;
   std::vector<double> x;
-    for (int n = 0; n < N; ++n) x.push_back(n);
+  for (int n = 0; n < N; ++n)
+    x.push_back(n);
 
   EXPECT_NO_THROW(writer(x));
   EXPECT_EQ("0,1,2,3,4\n", ss.str());
@@ -30,8 +30,8 @@ TEST_F(StanInterfaceCallbacksStreamWriter, double_vector) {
 TEST_F(StanInterfaceCallbacksStreamWriter, string_vector) {
   const int N = 5;
   std::vector<std::string> x;
-    for (int n = 0; n < N; ++n)
-      x.push_back(boost::lexical_cast<std::string>(n));
+  for (int n = 0; n < N; ++n)
+    x.push_back(std::to_string(n));
 
   EXPECT_NO_THROW(writer(x));
   EXPECT_EQ("0,1,2,3,4\n", ss.str());

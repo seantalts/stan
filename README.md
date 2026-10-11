@@ -15,7 +15,7 @@ It is built on top of the [Stan Math library](https://github.com/stan-dev/math),
 
 There are interfaces available in R, Python, MATLAB, Julia, Stata, Mathematica, and for the command line.
 
-[![DOI](https://zenodo.org/badge/19868/stan-dev/stan.svg)](https://zenodo.org/badge/latestdoi/19868/stan-dev/stan)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.597268-blue)](https://doi.org/10.5281/zenodo.597268)
 
 Home Page
 ---------
@@ -33,4 +33,6 @@ Stan's source-code repository is hosted here on GitHub.
 
 Licensing
 ---------
-The Stan math library, core Stan code, and CmdStan are licensed under new BSD.   RStan and PyStan are licensed under GPLv3, with other interfaces having other open-source licenses.
+The Stan math library, core Stan code, and CmdStan are licensed under new BSD. RStan and PyStan are licensed under GPLv3, with other interfaces having other open-source licenses.
+
+Note that the Stan math library depends on the Intel TBB library which is licensed under the Apache 2.0 license. This dependency implies an additional restriction as compared to the new BSD lincense alone. The Apache 2.0 license is incompatible with GPL-2 licensed code if distributed as a unitary binary. You may refer to the Licensing page on the [Stan wiki](https://github.com/stan-dev/stan/wiki/Stan-Licensing).

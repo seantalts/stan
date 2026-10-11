@@ -1,27 +1,24 @@
-#include <stan/io/dump.hpp>
+#include <stan/io/empty_var_context.hpp>
 #include <stan/mcmc/hmc/hamiltonians/softabs_metric.hpp>
+#include <stan/services/util/create_rng.hpp>
 #include <stan/callbacks/stream_logger.hpp>
 #include <test/unit/mcmc/hmc/mock_hmc.hpp>
 #include <test/test-models/good/mcmc/hmc/hamiltonians/funnel.hpp>
 #include <test/unit/util.hpp>
 
-#include <boost/random/additive_combine.hpp>
-
 #include <gtest/gtest.h>
 
 #include <string>
 
-typedef boost::ecuyer1988 rng_t;
-
 TEST(McmcSoftAbs, sample_p) {
-  rng_t base_rng(0);
+  stan::rng_t base_rng = stan::services::util::create_rng(0, 0);
 
   Eigen::VectorXd q(2);
   q(0) = 5;
   q(1) = 1;
 
   stan::mcmc::mock_model model(q.size());
-  stan::mcmc::softabs_metric<stan::mcmc::mock_model, rng_t> metric(model);
+  stan::mcmc::softabs_metric<stan::mcmc::mock_model, stan::rng_t> metric(model);
   stan::mcmc::softabs_point z(q.size());
 
   int n_samples = 1000;
@@ -31,7 +28,6 @@ TEST(McmcSoftAbs, sample_p) {
   std::stringstream model_output;
   std::stringstream debug, info, warn, error, fatal;
   stan::callbacks::stream_logger logger(debug, info, warn, error, fatal);
-
 
   metric.update_metric(z, logger);
 
@@ -47,7 +43,7 @@ TEST(McmcSoftAbs, sample_p) {
   double var = m2 / (n_samples + 1.0);
 
   // Mean within 5sigma of expected value (d / 2)
-  EXPECT_TRUE(std::fabs(m   - 0.5 * q.size()) < 5.0 * sqrt(var));
+  EXPECT_TRUE(std::fabs(m - 0.5 * q.size()) < 5.0 * sqrt(var));
 
   // Variance within 10% of expected value (d / 2)
   EXPECT_TRUE(std::fabs(var - 0.5 * q.size()) < 0.1 * q.size());
@@ -61,26 +57,23 @@ TEST(McmcSoftAbs, sample_p) {
 }
 
 TEST(McmcSoftAbs, gradients) {
-
-  rng_t base_rng(0);
-
   Eigen::VectorXd q = Eigen::VectorXd::Ones(11);
 
   stan::mcmc::softabs_point z(q.size());
   z.q = q;
   z.p.setOnes();
 
-  std::fstream data_stream(std::string("").c_str(), std::fstream::in);
-  stan::io::dump data_var_context(data_stream);
-  data_stream.close();
+  stan::io::empty_var_context data_var_context;
 
   std::stringstream model_output;
   std::stringstream debug, info, warn, error, fatal;
   stan::callbacks::stream_logger logger(debug, info, warn, error, fatal);
 
-  funnel_model_namespace::funnel_model model(data_var_context, &model_output);
+  funnel_model_namespace::funnel_model model(data_var_context, 0,
+                                             &model_output);
 
-  stan::mcmc::softabs_metric<funnel_model_namespace::funnel_model, rng_t> metric(model);
+  stan::mcmc::softabs_metric<funnel_model_namespace::funnel_model, stan::rng_t>
+      metric(model);
 
   double epsilon = 1e-6;
 
@@ -88,7 +81,6 @@ TEST(McmcSoftAbs, gradients) {
   Eigen::VectorXd g1 = metric.dtau_dq(z, logger);
 
   for (int i = 0; i < z.q.size(); ++i) {
-
     double delta = 0;
 
     z.q(i) += epsilon;
@@ -110,7 +102,6 @@ TEST(McmcSoftAbs, gradients) {
   Eigen::VectorXd g2 = metric.dtau_dp(z);
 
   for (int i = 0; i < z.q.size(); ++i) {
-
     double delta = 0;
 
     z.p(i) += epsilon;
@@ -156,7 +147,6 @@ TEST(McmcSoftAbs, gradients) {
 
 TEST(McmcSoftAbs, streams) {
   stan::test::capture_std_streams();
-  rng_t base_rng(0);
 
   Eigen::VectorXd q(2);
   q(0) = 5;
@@ -164,7 +154,8 @@ TEST(McmcSoftAbs, streams) {
   stan::mcmc::mock_model model(q.size());
 
   // for use in Google Test macros below
-  typedef stan::mcmc::softabs_metric<stan::mcmc::mock_model, rng_t> softabs;
+  typedef stan::mcmc::softabs_metric<stan::mcmc::mock_model, stan::rng_t>
+      softabs;
 
   EXPECT_NO_THROW(softabs metric(model));
 
